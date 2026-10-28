@@ -1,0 +1,13 @@
+node_modules/
+package-lock.json
+.env
+.env.local
+.env.*.local
+.auth/
+reports/
+test-results/
+playwright-report/
+dist/
+*.log
+.DS_Store
+Thumbs.db

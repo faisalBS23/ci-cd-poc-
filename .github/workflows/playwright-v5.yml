@@ -1,0 +1,93 @@
+name: Playwright V5
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-v5-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changed-specs:
+    name: Changed Playwright specs
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HEADLESS: "true"
+      REFRESH_V5_AUTH: "true"
+      TEQ_V5_FRONTEND_URL: ${{ secrets.TEQ_V5_FRONTEND_URL }}
+      TEQ_V5_BACKEND_URL: ${{ secrets.TEQ_V5_BACKEND_URL }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: git fetch origin "${{ github.base_ref }}"
+
+      - name: List changed specs
+        id: specs
+        run: |
+          set -euo pipefail
+          git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- "tests-v5/**/*.spec.ts" \
+            | while IFS= read -r file; do
+                if [[ -n "$file" && -f "$file" ]]; then
+                  printf '%s\n' "$file"
+                fi
+              done > changed-specs.txt
+          if [[ ! -s changed-specs.txt ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No new or edited spec files. Playwright will be skipped."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Specs to run:"
+            cat changed-specs.txt
+          fi
+
+      - name: Set up Node
+        if: steps.specs.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install npm packages
+        if: steps.specs.outputs.run == 'true'
+        env:
+          HUSKY: "0"
+        run: npm install
+
+      - name: Install Chromium
+        if: steps.specs.outputs.run == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run changed specs
+        if: steps.specs.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          : "${TEQ_V5_FRONTEND_URL:?Set the TEQ_V5_FRONTEND_URL repository secret}"
+          : "${TEQ_V5_BACKEND_URL:?Set the TEQ_V5_BACKEND_URL repository secret}"
+          : "${TEST_USER_EMAIL:?Set the TEST_USER_EMAIL repository secret}"
+          : "${TEST_USER_PASSWORD:?Set the TEST_USER_PASSWORD repository secret}"
+          mapfile -t specs < changed-specs.txt
+          npx playwright test \
+            --config=tests-v5/configs/playwright.v5.config.ts \
+            --project=v5-chromium \
+            "${specs[@]}"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-v5-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: |
+            reports/v5/
+            test-results/v5/
+          if-no-files-found: ignore
+          retention-days: 14

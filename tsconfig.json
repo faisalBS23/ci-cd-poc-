@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022", "DOM"],
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "types": ["node", "@playwright/test"],
+    "baseUrl": ".",
+    "paths": {
+      "@page-objects/*": ["page-objects/*"],
+      "@fixtures/*": ["fixtures/*"],
+      "@utils/*": ["utils/*"],
+      "@helpers/*": ["helpers/*"],
+      "@hooks/*": ["hooks/*"],
+      "@configs/*": ["configs/*"],
+      "@tests/*": ["tests/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "tests/**/*.spec.ts",
+    "page-objects/**/*.ts",
+    "utils/**/*.ts",
+    "helpers/**/*.ts",
+    "hooks/**/*.ts",
+    "configs/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "reports",
+    "test-results",
+    "playwright-report",
+    "allure-results",
+    "allure-report"
+  ]
+}
