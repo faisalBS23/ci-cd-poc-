@@ -1,9 +1,11 @@
 # ci-cd-poc-
 
-Small Playwright proof of concept. Two Price & salary smokes copied from `teq-test`:
+Small Playwright proof of concept. Settings smokes copied from `teq-test`:
 
 - Price & salary opens and its catalogs are reachable
 - List catalogs can create; Weekend and Calculator cannot
+- Company settings profile page loads
+- Invoicing settings page loads
 
 A pull request runs only the `.spec.ts` files that changed on that branch.
 
