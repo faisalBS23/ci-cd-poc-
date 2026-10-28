@@ -27,28 +27,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-
-      - name: Fetch base branch
-        run: git fetch origin "${{ github.base_ref }}"
 
       - name: List changed specs
         id: specs
         run: |
           set -euo pipefail
-          git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- "tests-v5/**/*.spec.ts" \
-            | while IFS= read -r file; do
-                if [[ -n "$file" && -f "$file" ]]; then
-                  printf '%s\n' "$file"
-                fi
-              done > changed-specs.txt
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          git diff --name-only --diff-filter=ACMR "$base" "$head" \
+            | grep -E '^tests-v5/.+\.spec\.ts$' > changed-specs.txt || true
           if [[ ! -s changed-specs.txt ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "No new or edited spec files. Playwright will be skipped."
+            echo "No new or edited spec files between $base and $head. Playwright will be skipped."
+            {
+              echo "## Playwright"
+              echo ""
+              echo "No new or edited spec files on this pull request. Playwright was skipped."
+            } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Specs to run:"
             cat changed-specs.txt
+            {
+              echo "## Playwright"
+              echo ""
+              echo "Running these specs:"
+              echo ""
+              while IFS= read -r file; do
+                echo "- \`$file\`"
+              done < changed-specs.txt
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Set up Node
