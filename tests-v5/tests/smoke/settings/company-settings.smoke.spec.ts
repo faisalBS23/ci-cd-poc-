@@ -3,6 +3,7 @@ import { TAGS } from '../../../configs/playwright.v5.tags';
 
 /**
  * Smoke — profile page load only. No save.
+ * This line is here so the pull request diff includes this spec and CI runs it.
  */
 test.describe('Company Settings - Smoke Tests', { tag: [TAGS.smoke, TAGS.v5, TAGS.companySettings, TAGS.version_1_0_0] }, () => {
   test('TC-SETTINGS-COMPANY-SMOKE-001: Profile Settings page loads and displays all sections', async ({
