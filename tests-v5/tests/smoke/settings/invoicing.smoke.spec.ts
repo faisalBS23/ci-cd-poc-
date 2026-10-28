@@ -3,7 +3,6 @@ import { TAGS } from '../../../configs/playwright.v5.tags';
 
 /**
  * Smoke — invoicing page load only. No save.
- * This line is here so the pull request diff includes this spec and CI runs it.
  */
 test.describe('Settings Invoicing - Smoke Tests', {
   tag: [TAGS.smoke, TAGS.v5, TAGS.settings, TAGS.invoicingSettings],
