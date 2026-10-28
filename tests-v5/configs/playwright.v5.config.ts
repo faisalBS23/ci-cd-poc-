@@ -20,6 +20,7 @@ export default defineConfig({
     ['json', { outputFile: '../../reports/v5/json/results.json' }],
     ['junit', { outputFile: '../../reports/v5/junit/results.xml' }],
     ['list'],
+    ...(process.env.GITHUB_ACTIONS ? [['github'] as const] : []),
     ['../helpers/v5-test-automation-summary-reporter.ts', {
     outputFile: `../../reports/v5/test-automation-summary.html`,
     title: 'Test Automation Report',
