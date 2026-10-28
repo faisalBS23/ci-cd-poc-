@@ -6,6 +6,8 @@ Small Playwright proof of concept. Settings smokes copied from `teq-test`:
 - List catalogs can create; Weekend and Calculator cannot
 - Company settings profile page loads
 - Invoicing settings page loads
+- Driver settings page loads
+- Policies page loads
 
 A pull request runs only the `.spec.ts` files that changed on that branch.
 
