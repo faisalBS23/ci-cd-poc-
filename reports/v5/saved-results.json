@@ -14,6 +14,20 @@
     "updatedAt": "2026-10-29T06:21:59.610Z"
   },
   {
+    "id": "TC-SETTINGS-INT-SMOKE-001",
+    "title": "TC-SETTINGS-INT-SMOKE-001: Integrations page loads card list; sidebar Integrations is active",
+    "status": "passed",
+    "file": "smoke/settings/integrations.smoke.spec.ts",
+    "updatedAt": "2026-10-29T10:09:19.191Z"
+  },
+  {
+    "id": "TC-SETTINGS-NOTIF-SMOKE-001",
+    "title": "TC-SETTINGS-NOTIF-SMOKE-001: Notification Settings page loads successfully with all three sections visible",
+    "status": "passed",
+    "file": "smoke/settings/notification-settings.smoke.spec.ts",
+    "updatedAt": "2026-10-29T10:09:19.191Z"
+  },
+  {
     "id": "TC-SETTINGS-ORG-SMOKE-001",
     "title": "TC-SETTINGS-ORG-SMOKE-001: Organisation page loads tree; sidebar Organisation is active",
     "status": "passed",
