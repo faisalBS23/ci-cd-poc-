@@ -43,14 +43,14 @@ jobs:
             exit 0
           fi
           git diff --name-only --diff-filter=ACMR "$before" HEAD \
-            | grep -E '^tests-v5/.+\.spec\.ts$' > changed-specs.txt || true
-          if [[ ! -s changed-specs.txt ]]; then
+            | grep -E '^tests-v5/.+\.spec\.ts$' > "$RUNNER_TEMP/changed-specs.txt" || true
+          if [[ ! -s "$RUNNER_TEMP/changed-specs.txt" ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "No new or edited spec files on this main push."
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Specs to run on main:"
-            cat changed-specs.txt
+            cat "$RUNNER_TEMP/changed-specs.txt"
           fi
 
       - name: Set up Node
@@ -78,7 +78,7 @@ jobs:
           : "${TEQ_V5_BACKEND_URL:?Set the TEQ_V5_BACKEND_URL repository secret}"
           : "${TEST_USER_EMAIL:?Set the TEST_USER_EMAIL repository secret}"
           : "${TEST_USER_PASSWORD:?Set the TEST_USER_PASSWORD repository secret}"
-          mapfile -t specs < changed-specs.txt
+          mapfile -t specs < "$RUNNER_TEMP/changed-specs.txt"
           npx playwright test \
             --config=tests-v5/configs/playwright.v5.config.ts \
             --project=v5-chromium \
@@ -87,7 +87,6 @@ jobs:
       - name: Update the saved report
         run: |
           set -euo pipefail
-          git pull --rebase origin main
           if [[ "${{ steps.specs.outputs.run }}" == "true" && -f reports/v5/json/results.json ]]; then
             node --experimental-strip-types scripts/merge-saved-summary.ts update \
               reports/v5/json/results.json \
@@ -110,7 +109,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update the test summary."
-          git pull --rebase origin main
+          # Playwright leaves local report files. autoStash lets rebase ignore that noise.
+          git -c rebase.autoStash=true pull --rebase origin main
           git push origin HEAD:main
 
       - name: Upload reports

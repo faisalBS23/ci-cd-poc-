@@ -21,6 +21,20 @@
     "updatedAt": "2026-10-29T06:46:01.421Z"
   },
   {
+    "id": "TC-SETTINGS-VC-SMOKE-001",
+    "title": "TC-SETTINGS-VC-SMOKE-001: Verify Vehicle category list accessibility",
+    "status": "passed",
+    "file": "smoke/settings/vehicle-category.smoke.spec.ts",
+    "updatedAt": "2026-10-29T09:13:42.210Z"
+  },
+  {
+    "id": "TC-SETTINGS-VD-SMOKE-001",
+    "title": "TC-SETTINGS-VD-SMOKE-001: Verify Vehicle Decorations tab loads and list is discoverable",
+    "status": "passed",
+    "file": "smoke/settings/vehicle-decoration.smoke.spec.ts",
+    "updatedAt": "2026-10-29T09:13:42.210Z"
+  },
+  {
     "id": "TC-SETTINGS-VS-SMOKE-001",
     "title": "TC-SETTINGS-VS-SMOKE-001: Verify Vehicle State tab loads and list is discoverable",
     "status": "passed",
