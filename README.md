@@ -12,7 +12,7 @@ Small Playwright proof of concept. Settings smokes copied from `teq-test`:
 - Vehicle state list loads
 - Trip type page loads
 
-A pull request runs only the `.spec.ts` files that changed on that branch. After that run, Actions updates the custom page `reports/v5/test-automation-summary.html` and commits it. Older tests stay on that page. This run only changes the tests it ran. Do not commit that file from your machine. A local run rewrites it for the tests you just ran.
+A pull request runs only the `.spec.ts` files that changed on that branch. It reads the summary already on `main`, adds this run, and uploads that page. It commits one small result file per test it ran, under `reports/v5/saved/`. It does not commit the HTML page. After the pull request merges, Actions rebuilds `reports/v5/test-automation-summary.html` on `main` from every saved result file and commits that page there. Do not commit the HTML page from your machine. A local run rewrites it for the tests you just ran.
 
 Local run, from this folder, after you copy `.env.example` to `.env` and fill it in:
 

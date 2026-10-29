@@ -1,43 +1,77 @@
 import fs from 'fs';
 import path from 'path';
 import {
+  mergeSavedResults,
+  readSavedResultDir,
   readSavedSummaryLedger,
-  writeCumulativeSummary,
+  renderSavedSummary,
+  testsFromPlaywrightJson,
+  writeSavedResultFiles,
+  type SavedSummaryTest,
 } from '../tests-v5/helpers/v5-test-automation-summary-reporter.ts';
 
-const [mode, first, second, third] = process.argv.slice(2);
+const [mode, ...args] = process.argv.slice(2);
 
 function readJson(file: string) {
   return JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
 }
 
-if (mode === 'extract') {
-  const htmlPath = path.resolve(first || 'reports/v5/test-automation-summary.html');
-  const ledgerPath = path.resolve(second || 'summary-ledger.json');
-  const html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : '';
-  const tests = html ? readSavedSummaryLedger(html) : [];
-  fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
-  fs.writeFileSync(ledgerPath, `${JSON.stringify(tests)}\n`);
-  console.log(`Kept ${tests.length} saved results from the custom summary.`);
-} else if (mode === 'write') {
-  const ledgerPath = path.resolve(first || 'summary-ledger.json');
-  const playwrightJsonPath = path.resolve(second || 'reports/v5/json/results.json');
-  const htmlPath = path.resolve(third || 'reports/v5/test-automation-summary.html');
-  if (!fs.existsSync(playwrightJsonPath)) {
-    console.log(`No Playwright JSON at ${playwrightJsonPath}. Custom summary was left unchanged.`);
+function readLedger(htmlPath: string): SavedSummaryTest[] {
+  if (!htmlPath || !fs.existsSync(htmlPath)) return [];
+  return readSavedSummaryLedger(fs.readFileSync(htmlPath, 'utf8'));
+}
+
+if (mode === 'save-run') {
+  const [playwrightJsonPath, previousSavedDir, previousHtmlPath, outSavedDir, outHtmlPath] = args;
+  if (!playwrightJsonPath || !outSavedDir || !outHtmlPath) {
+    console.error(
+      'Use: merge-saved-summary.ts save-run <playwright-json> <previous-saved-dir> <previous-html> <out-saved-dir> <out-html>',
+    );
+    process.exit(1);
+  }
+  const resolvedJson = path.resolve(playwrightJsonPath);
+  if (!fs.existsSync(resolvedJson)) {
+    console.log(`No Playwright JSON at ${resolvedJson}. Saved results were left unchanged.`);
     process.exit(0);
   }
-  const previous = fs.existsSync(ledgerPath) ? readJson(ledgerPath) : [];
-  const result = writeCumulativeSummary({
-    previous,
-    playwrightJson: readJson(playwrightJsonPath),
-    outputHtml: htmlPath,
+  const playwrightJson = readJson(resolvedJson);
+  const fresh = testsFromPlaywrightJson(playwrightJson);
+  const merged = mergeSavedResults(
+    readLedger(previousHtmlPath ? path.resolve(previousHtmlPath) : ''),
+    readSavedResultDir(previousSavedDir ? path.resolve(previousSavedDir) : ''),
+    fresh,
+  );
+  const written = writeSavedResultFiles(path.resolve(outSavedDir), fresh);
+  const rendered = renderSavedSummary({
+    tests: merged,
+    outputHtml: path.resolve(outHtmlPath),
     title: 'Test Automation Report',
+    durationMs: playwrightJson.stats?.duration ?? 0,
   });
   console.log(
-    `Updated the custom summary at ${htmlPath}. Saved ${result.total}. This run changed ${result.updated}.`,
+    `Saved ${written.length} result file(s) for this run. The summary page has ${rendered.total} test(s).`,
   );
+} else if (mode === 'render') {
+  const [savedDir, htmlPath] = args;
+  if (!savedDir || !htmlPath) {
+    console.error('Use: merge-saved-summary.ts render <saved-dir> <html>');
+    process.exit(1);
+  }
+  const dir = path.resolve(savedDir);
+  const html = path.resolve(htmlPath);
+  const fromFiles = readSavedResultDir(dir);
+  const fromHtml = readLedger(html);
+  const merged = mergeSavedResults(fromHtml, fromFiles);
+  const fileIds = new Set(fromFiles.map((test) => test.id));
+  const missing = merged.filter((test) => !fileIds.has(test.id));
+  if (missing.length) writeSavedResultFiles(dir, missing);
+  const rendered = renderSavedSummary({
+    tests: merged,
+    outputHtml: html,
+    title: 'Test Automation Report',
+  });
+  console.log(`Custom summary has ${rendered.total} saved test(s). Added ${missing.length} result file(s) from the old page.`);
 } else {
-  console.error('Use: merge-saved-summary.ts extract <html> <ledger> | write <ledger> <playwright-json> <html>');
+  console.error('Use: merge-saved-summary.ts save-run ... | render <saved-dir> <html>');
   process.exit(1);
 }

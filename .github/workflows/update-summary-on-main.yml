@@ -1,0 +1,52 @@
+name: Update saved summary
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "reports/v5/saved/**"
+      - ".github/workflows/update-summary-on-main.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: saved-summary-main
+  cancel-in-progress: false
+
+jobs:
+  summary:
+    name: Rebuild the custom summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Rebuild the custom summary
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+          node --experimental-strip-types scripts/merge-saved-summary.ts render reports/v5/saved reports/v5/test-automation-summary.html
+
+      - name: Commit the custom summary
+        run: |
+          set -euo pipefail
+          git add -f reports/v5/saved reports/v5/test-automation-summary.html
+          if git diff --cached --quiet; then
+            echo "Custom summary already matches the saved results."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update the test summary."
+          git pull --rebase origin main
+          git push origin HEAD:main

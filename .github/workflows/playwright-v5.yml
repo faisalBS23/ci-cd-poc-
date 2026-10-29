@@ -76,9 +76,16 @@ jobs:
         if: steps.specs.outputs.run == 'true'
         run: npx playwright install --with-deps chromium
 
-      - name: Read the saved summary
+      - name: Read the summary on main
         if: steps.specs.outputs.run == 'true'
-        run: node --experimental-strip-types scripts/merge-saved-summary.ts extract reports/v5/test-automation-summary.html "$RUNNER_TEMP/summary-ledger.json"
+        run: |
+          set -euo pipefail
+          git fetch origin "${{ github.base_ref }}"
+          mkdir -p "$RUNNER_TEMP/main-report/reports/v5"
+          if git cat-file -e "origin/${{ github.base_ref }}:reports/v5/saved" 2>/dev/null; then
+            git archive "origin/${{ github.base_ref }}" reports/v5/saved | tar -x -C "$RUNNER_TEMP/main-report"
+          fi
+          git show "origin/${{ github.base_ref }}:reports/v5/test-automation-summary.html" > "$RUNNER_TEMP/main-report/summary.html" || true
 
       - name: Run changed specs
         id: tests
@@ -96,22 +103,28 @@ jobs:
             --project=v5-chromium \
             "${specs[@]}"
 
-      - name: Update the custom summary
+      - name: Save this run
         if: steps.specs.outputs.run == 'true'
-        run: node --experimental-strip-types scripts/merge-saved-summary.ts write "$RUNNER_TEMP/summary-ledger.json" reports/v5/json/results.json reports/v5/test-automation-summary.html
+        run: |
+          node --experimental-strip-types scripts/merge-saved-summary.ts save-run \
+            reports/v5/json/results.json \
+            "$RUNNER_TEMP/main-report/reports/v5/saved" \
+            "$RUNNER_TEMP/main-report/summary.html" \
+            reports/v5/saved \
+            reports/v5/test-automation-summary.html
 
-      - name: Commit saved summary
+      - name: Commit this run's results
         if: steps.specs.outputs.run == 'true'
         run: |
           set -euo pipefail
-          git add -f reports/v5/test-automation-summary.html
+          git add -f reports/v5/saved
           if git diff --cached --quiet; then
-            echo "Custom summary already matches this run."
+            echo "This run did not change any saved result files."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Update the test summary."
+          git commit -m "Save this run's test results."
           git push origin "HEAD:${{ github.head_ref }}"
 
       - name: Upload reports

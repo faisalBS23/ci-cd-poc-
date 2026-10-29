@@ -1,0 +1,7 @@
+{
+  "id": "TC-SETTINGS-DRV-SMOKE-001",
+  "title": "TC-SETTINGS-DRV-SMOKE-001: Driver page loads; category tab lists Name / Description / Action",
+  "status": "passed",
+  "file": "smoke/settings/driver.smoke.spec.ts",
+  "updatedAt": "2026-10-29T06:21:59.610Z"
+}

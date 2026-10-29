@@ -698,7 +698,7 @@ function collectPlaywrightTests(report: JsonReport, updatedAt: string): SavedSum
             id,
             title,
             status: statusFromPlaywright(result?.status),
-            file: specFile.replace(/\\/g, '/'),
+            file: reportPath(specFile),
             updatedAt,
           });
         }
@@ -716,22 +716,64 @@ function tcBucketForStatus(status: Status): OutcomeBucket {
   return 'skipped';
 }
 
+/** One result file per test, so two branches can add different tests without a merge conflict. */
+export function savedResultFileName(id: string): string {
+  const safe = id.replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^\.+/, '');
+  if (!safe) throw new Error(`Test id cannot be saved as a file name: ${id}`);
+  return `${safe}.json`;
+}
+
+export function readSavedResultDir(dir: string): SavedSummaryTest[] {
+  if (!dir || !fs.existsSync(dir)) return [];
+  const tests: SavedSummaryTest[] = [];
+  for (const name of fs.readdirSync(dir)) {
+    if (!name.endsWith('.json')) continue;
+    const raw = fs.readFileSync(path.join(dir, name), 'utf8').replace(/^\uFEFF/, '');
+    const parsed = JSON.parse(raw) as SavedSummaryTest;
+    if (!parsed || typeof parsed.id !== 'string' || !parsed.id) continue;
+    tests.push(parsed);
+  }
+  return tests;
+}
+
+/** Later groups replace the same test id. */
+export function mergeSavedResults(...groups: SavedSummaryTest[][]): SavedSummaryTest[] {
+  const byId = new Map<string, SavedSummaryTest>();
+  for (const group of groups) {
+    for (const test of group) {
+      if (!test?.id) continue;
+      byId.set(test.id, { ...test, file: reportPath(test.file || '') });
+    }
+  }
+  return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export function writeSavedResultFiles(dir: string, tests: SavedSummaryTest[]): string[] {
+  fs.mkdirSync(dir, { recursive: true });
+  return tests.map((test) => {
+    const file = path.join(dir, savedResultFileName(test.id));
+    const stored = { ...test, file: reportPath(test.file || '') };
+    fs.writeFileSync(file, `${JSON.stringify(stored, null, 2)}\n`);
+    return file;
+  });
+}
+
+export function testsFromPlaywrightJson(report: JsonReport, updatedAt = new Date().toISOString()): SavedSummaryTest[] {
+  return collectPlaywrightTests(report, updatedAt);
+}
+
 /**
- * Rewrite the custom summary page from the previous saved results plus this run.
- * Tests that did not run keep their last pass or fail.
+ * Rewrite the custom summary page from a full set of saved results.
+ * Tests that did not run in the latest job stay on the page.
  */
-export function writeCumulativeSummary(opts: {
-  previous: SavedSummaryTest[];
-  playwrightJson: JsonReport;
+export function renderSavedSummary(opts: {
+  tests: SavedSummaryTest[];
   outputHtml: string;
   title?: string;
-}): { total: number; updated: number } {
+  durationMs?: number;
+}): { total: number } {
+  const tests = mergeSavedResults(opts.tests);
   const updatedAt = new Date().toISOString();
-  const fresh = collectPlaywrightTests(opts.playwrightJson, updatedAt);
-  const byId = new Map(opts.previous.map((test) => [test.id, test]));
-  for (const test of fresh) byId.set(test.id, test);
-  const tests = [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
-
   const records = tests.map((test) => {
     const { type, module } = classify(reportPath(test.file));
     return { type, module, status: test.status };
@@ -756,7 +798,7 @@ export function writeCumulativeSummary(opts: {
       project: 'v5-chromium',
       version: '',
       date: new Date().toLocaleString(),
-      durationMs: opts.playwrightJson.stats?.duration ?? 0,
+      durationMs: opts.durationMs ?? 0,
       ok: !failed,
       generatedAt: updatedAt,
     },
@@ -770,5 +812,26 @@ export function writeCumulativeSummary(opts: {
   );
   fs.mkdirSync(path.dirname(opts.outputHtml), { recursive: true });
   fs.writeFileSync(opts.outputHtml, withLedger, 'utf8');
-  return { total: tests.length, updated: fresh.length };
+  return { total: tests.length };
+}
+
+/**
+ * Rewrite the custom summary page from the previous saved results plus this run.
+ * Tests that did not run keep their last pass or fail.
+ */
+export function writeCumulativeSummary(opts: {
+  previous: SavedSummaryTest[];
+  playwrightJson: JsonReport;
+  outputHtml: string;
+  title?: string;
+}): { total: number; updated: number } {
+  const fresh = testsFromPlaywrightJson(opts.playwrightJson);
+  const tests = mergeSavedResults(opts.previous, fresh);
+  const rendered = renderSavedSummary({
+    tests,
+    outputHtml: opts.outputHtml,
+    title: opts.title,
+    durationMs: opts.playwrightJson.stats?.duration ?? 0,
+  });
+  return { total: rendered.total, updated: fresh.length };
 }
