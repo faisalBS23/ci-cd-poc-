@@ -4,6 +4,9 @@ import { DriverPage } from './page-objects/settings/driver.page';
 import { InvoicingSettingsPage } from './page-objects/settings/invoicing.page';
 import { PoliciesPage } from './page-objects/settings/policies.page';
 import { PriceSalaryPage } from './page-objects/settings/price-salary.page';
+import { TripTypePage } from './page-objects/settings/trip-type.page';
+import { VehicleStatePage } from './page-objects/settings/vehicle-state.page';
+import { VehicleTypePage } from './page-objects/settings/vehicle-type.page';
 
 type PocFixtures = {
   companySettingsPage: CompanySettingsPage;
@@ -11,6 +14,9 @@ type PocFixtures = {
   invoicingSettingsPage: InvoicingSettingsPage;
   policiesPage: PoliciesPage;
   priceSalaryPage: PriceSalaryPage;
+  tripTypePage: TripTypePage;
+  vehicleStatePage: VehicleStatePage;
+  vehicleTypePage: VehicleTypePage;
 };
 
 export const test = base.extend<PocFixtures>({
@@ -28,6 +34,15 @@ export const test = base.extend<PocFixtures>({
   },
   priceSalaryPage: async ({ page }, use) => {
     await use(new PriceSalaryPage(page));
+  },
+  tripTypePage: async ({ page }, use) => {
+    await use(new TripTypePage(page));
+  },
+  vehicleStatePage: async ({ page }, use) => {
+    await use(new VehicleStatePage(page));
+  },
+  vehicleTypePage: async ({ page }, use) => {
+    await use(new VehicleTypePage(page));
   },
 });
 

@@ -8,6 +8,9 @@ Small Playwright proof of concept. Settings smokes copied from `teq-test`:
 - Invoicing settings page loads
 - Driver settings page loads
 - Policies page loads
+- Vehicle type list loads
+- Vehicle state list loads
+- Trip type page loads
 
 A pull request runs only the `.spec.ts` files that changed on that branch. After that run, Actions updates the custom page `reports/v5/test-automation-summary.html` and commits it. Older tests stay on that page. This run only changes the tests it ran. Do not commit that file from your machine. A local run rewrites it for the tests you just ran.
 
