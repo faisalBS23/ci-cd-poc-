@@ -4,132 +4,160 @@
     "title": "TC-PROFILE-SMOKE-002: Personal form shows name, country, date, gender, and marital",
     "status": "passed",
     "file": "smoke/account/my-profile.smoke.spec.ts",
-    "updatedAt": "2026-10-29T10:39:31.542Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-PROFILE-SMOKE-003",
     "title": "TC-PROFILE-SMOKE-003: Account settings email is read-only; language and timezone are present",
-    "status": "passed",
+    "status": "failed",
     "file": "smoke/account/my-profile-account.smoke.spec.ts",
-    "updatedAt": "2026-10-29T11:02:29.175Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-BP-SMOKE-001",
     "title": "TC-SETTINGS-BP-SMOKE-001: Admin can view existing billing profiles for the company",
     "status": "passed",
     "file": "smoke/settings/business-profile.smoke.spec.ts",
-    "updatedAt": "2026-10-29T09:51:01.290Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
+  },
+  {
+    "id": "TC-SETTINGS-COMPANY-SMOKE-001",
+    "title": "TC-SETTINGS-COMPANY-SMOKE-001: Profile Settings page loads and displays all sections",
+    "status": "passed",
+    "file": "smoke/settings/company-settings.smoke.spec.ts",
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-DRV-SMOKE-001",
     "title": "TC-SETTINGS-DRV-SMOKE-001: Driver page loads; category tab lists Name / Description / Action",
     "status": "passed",
     "file": "smoke/settings/driver.smoke.spec.ts",
-    "updatedAt": "2026-10-29T06:21:59.610Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-INT-SMOKE-001",
     "title": "TC-SETTINGS-INT-SMOKE-001: Integrations page loads card list; sidebar Integrations is active",
     "status": "passed",
     "file": "smoke/settings/integrations.smoke.spec.ts",
-    "updatedAt": "2026-10-29T10:09:19.191Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
+  },
+  {
+    "id": "TC-SETTINGS-INVOICE-SMOKE-001",
+    "title": "TC-SETTINGS-INVOICE-SMOKE-001: Page loads and shows current settings",
+    "status": "passed",
+    "file": "smoke/settings/invoicing.smoke.spec.ts",
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-LOC-SMOKE-001",
     "title": "TC-SETTINGS-LOC-SMOKE-001: Locations page + table render",
     "status": "passed",
     "file": "smoke/settings/locations.smoke.spec.ts",
-    "updatedAt": "2026-10-29T10:39:31.542Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-NOTIF-SMOKE-001",
     "title": "TC-SETTINGS-NOTIF-SMOKE-001: Notification Settings page loads successfully with all three sections visible",
     "status": "passed",
     "file": "smoke/settings/notification-settings.smoke.spec.ts",
-    "updatedAt": "2026-10-29T10:09:19.191Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-ORG-SMOKE-001",
     "title": "TC-SETTINGS-ORG-SMOKE-001: Organisation page loads tree; sidebar Organisation is active",
     "status": "passed",
     "file": "smoke/settings/organisation.smoke.spec.ts",
-    "updatedAt": "2026-10-29T09:51:01.290Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-PLN-SMOKE-001",
     "title": "TC-SETTINGS-PLN-SMOKE-001: Planning page loads; four sections visible",
     "status": "passed",
     "file": "smoke/settings/planning.smoke.spec.ts",
-    "updatedAt": "2026-10-29T11:02:29.175Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-POL-SMOKE-001",
     "title": "TC-SETTINGS-POL-SMOKE-001: Policies page loads; Cancellation + Payment sections visible",
     "status": "passed",
     "file": "smoke/settings/policies.smoke.spec.ts",
-    "updatedAt": "2026-10-29T06:21:59.610Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-PRODUCT-SMOKE-001",
     "title": "TC-SETTINGS-PRODUCT-SMOKE-001: Product page loads with save controls",
     "status": "passed",
     "file": "smoke/settings/product-settings.smoke.spec.ts",
-    "updatedAt": "2026-10-29T10:39:31.542Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
+  },
+  {
+    "id": "TC-SETTINGS-PS-SMOKE-001",
+    "title": "TC-SETTINGS-PS-SMOKE-001: Price & salary opens; catalogs are reachable",
+    "status": "passed",
+    "file": "smoke/settings/price-salary.smoke.spec.ts",
+    "updatedAt": "2026-10-29T11:26:51.759Z"
+  },
+  {
+    "id": "TC-SETTINGS-PS-SMOKE-002",
+    "title": "TC-SETTINGS-PS-SMOKE-002: List catalogs can create; Weekend and Calculator cannot",
+    "status": "passed",
+    "file": "smoke/settings/price-salary.smoke.spec.ts",
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-TRIP-SMOKE-002",
     "title": "TC-SETTINGS-TRIP-SMOKE-002: Time additions + airport list; no pickup radius",
     "status": "passed",
     "file": "smoke/settings/trip-settings.smoke.spec.ts",
-    "updatedAt": "2026-10-29T09:38:13.327Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-TT-SMOKE-001",
     "title": "TC-SETTINGS-TT-SMOKE-001: Trip type page loads; default rows visible",
     "status": "passed",
     "file": "smoke/settings/trip-type.smoke.spec.ts",
-    "updatedAt": "2026-10-29T06:46:01.421Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-UR-SMOKE-001",
     "title": "TC-SETTINGS-UR-SMOKE-001: User roles page loads; role list renders",
     "status": "passed",
     "file": "smoke/settings/user-roles.smoke.spec.ts",
-    "updatedAt": "2026-10-29T09:51:01.290Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-VC-SMOKE-001",
     "title": "TC-SETTINGS-VC-SMOKE-001: Verify Vehicle category list accessibility",
     "status": "passed",
     "file": "smoke/settings/vehicle-category.smoke.spec.ts",
-    "updatedAt": "2026-10-29T09:13:42.210Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-VCOLOR-SMOKE-001",
     "title": "TC-SETTINGS-VCOLOR-SMOKE-001: Verify Vehicle Color tab loads and list is discoverable",
     "status": "passed",
     "file": "smoke/settings/vehicle-color.smoke.spec.ts",
-    "updatedAt": "2026-10-29T09:38:13.327Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-VD-SMOKE-001",
     "title": "TC-SETTINGS-VD-SMOKE-001: Verify Vehicle Decorations tab loads and list is discoverable",
     "status": "passed",
     "file": "smoke/settings/vehicle-decoration.smoke.spec.ts",
-    "updatedAt": "2026-10-29T09:13:42.210Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-VS-SMOKE-001",
     "title": "TC-SETTINGS-VS-SMOKE-001: Verify Vehicle State tab loads and list is discoverable",
     "status": "passed",
     "file": "smoke/settings/vehicle-state.smoke.spec.ts",
-    "updatedAt": "2026-10-29T06:46:01.421Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   },
   {
     "id": "TC-SETTINGS-VT-SMOKE-001",
     "title": "TC-SETTINGS-VT-SMOKE-001: Verify Vehicles hub loads and vehicle type list is discoverable",
     "status": "passed",
     "file": "smoke/settings/vehicle-type.smoke.spec.ts",
-    "updatedAt": "2026-10-29T06:46:01.421Z"
+    "updatedAt": "2026-10-29T11:26:51.759Z"
   }
 ]
