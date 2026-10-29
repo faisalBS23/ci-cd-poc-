@@ -127,9 +127,35 @@ if (mode === 'save-incoming') {
     title: 'Test Automation Report',
   });
   console.log(`Main summary has ${rendered.total} test(s).`);
+} else if (mode === 'update') {
+  const [playwrightJsonPath, ledgerPath, htmlPath] = args;
+  if (!playwrightJsonPath || !ledgerPath || !htmlPath) {
+    console.error('Use: merge-saved-summary.ts update <playwright-json> <ledger> <html>');
+    process.exit(1);
+  }
+  const resolvedJson = path.resolve(playwrightJsonPath);
+  if (!fs.existsSync(resolvedJson)) {
+    console.log(`No Playwright JSON at ${resolvedJson}. Main summary was not updated.`);
+    process.exit(0);
+  }
+  const playwrightJson = readJson(resolvedJson);
+  const fresh = testsFromPlaywrightJson(playwrightJson);
+  const ledger = path.resolve(ledgerPath);
+  const html = path.resolve(htmlPath);
+  const merged = mergeSavedResults(previousFromMain(ledger, html), fresh);
+  const tests = writeSavedResultsFile(ledger, merged);
+  const rendered = renderSavedSummary({
+    tests,
+    outputHtml: html,
+    title: 'Test Automation Report',
+    durationMs: playwrightJson.stats?.duration ?? 0,
+  });
+  console.log(
+    `Main summary has ${rendered.total} test(s). This full suite run updated ${fresh.length}.`,
+  );
 } else {
   console.error(
-    'Use: merge-saved-summary.ts save-incoming ... | preview ... | absorb ... | render ...',
+    'Use: merge-saved-summary.ts save-incoming ... | preview ... | absorb ... | render ... | update ...',
   );
   process.exit(1);
 }
