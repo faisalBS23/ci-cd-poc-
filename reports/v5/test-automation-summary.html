@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Test Automation Report — Test Summary</title>
+<style>
+  :root{--ink:#1c2230;--muted:#7a8496;--line:#e6e9ef;--bg:#fff;--panel:#f7f8fb;
+    --pass:#158f5a;--fail:#d1373a;--skip:#c07f14;--flaky:#8a5cf0;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef1f6;color:var(--ink);
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    font:15px/1.55 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .head-right{display:flex;flex-direction:column;align-items:flex-end;gap:14px}
+  .pdf-btn{background:#2b59d8;color:#fff;border:none;border-radius:8px;padding:9px 14px;font:600 13px/1 inherit;
+    cursor:pointer;display:inline-flex;align-items:center;gap:7px;box-shadow:0 1px 2px rgba(20,30,60,.12);transition:background .12s}
+  .pdf-btn:hover{background:#244fc4}.pdf-btn:active{transform:translateY(1px)}
+  .pdf-btn svg{width:15px;height:15px;display:block}
+  .wrap{max-width:960px;margin:32px auto;padding:0 20px}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(20,30,60,.04);overflow:hidden}
+  header.head{padding:26px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .title{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .meta{text-align:right;color:var(--muted);font-size:13px;line-height:1.7}
+  .meta b{color:var(--ink)}
+  .headline{padding:24px 28px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  .donut{flex:0 0 auto}
+  .headtext{flex:1 1 260px}
+  .headtext .big{font-size:15px;color:var(--muted)}
+  .headtext .big b{color:var(--ink);font-size:17px}
+  .stats{display:flex;border-bottom:1px solid var(--line)}
+  .stat{flex:1 1 0;padding:18px 20px;border-left:1px solid var(--line)}
+  .stat:first-child{border-left:none}
+  .stat .n{font-size:24px;font-weight:750;letter-spacing:-.02em}
+  .stat .s{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .stat.pass .n{color:var(--pass)}.stat.fail .n{color:var(--fail)}.stat.skip .n{color:var(--skip)}
+  section{padding:22px 28px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;font-weight:700}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);font-size:14px}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+  th.l,td.l{text-align:left}
+  td.l{font-weight:600}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--panel)}
+  td.pass{color:var(--pass);font-weight:600}
+  td.fail{color:var(--fail);font-weight:700}
+  td.skip{color:var(--skip);font-weight:600}
+  td.flakyc{color:var(--flaky);font-weight:600}
+  .muted{color:#c2c8d2}
+  th.rate,td.rate{width:180px}
+  .ratecell{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+  .bar{flex:1 1 auto;background:#eef1f6;border-radius:6px;height:9px;overflow:hidden;min-width:70px}
+  .bar-fill{height:100%;border-radius:6px}
+  .bar-fill.good{background:var(--pass)}.bar-fill.warn{background:var(--skip)}.bar-fill.bad{background:var(--fail)}
+  .bar-num{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--ink);min-width:44px;text-align:right}
+  tfoot td{font-weight:700;border-top:2px solid var(--line);background:var(--panel)}
+  footer{padding:16px 28px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+  .tc-section{border-top:1px solid var(--line)}
+  .tc-bucket{margin-bottom:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .tc-bucket summary{padding:12px 16px;cursor:pointer;font-weight:700;list-style:none;background:var(--panel)}
+  .tc-bucket summary::-webkit-details-marker{display:none}
+  .tc-count{font-weight:600;color:var(--muted);font-size:13px}
+  .tc-mod{padding:8px 16px 4px;border-top:1px solid var(--line)}
+  .tc-mod-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+  .tc-ids{margin:0 0 8px;padding-left:18px;font-size:13px;line-height:1.6}
+  .tc-ids code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+  .tc-empty{padding:12px 16px;margin:0}
+  @media screen and (max-width:640px){.stats{flex-wrap:wrap}.stat{flex:1 1 45%}th.rate,td.rate{display:none}}
+  @media print{@page{margin:14mm}body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .pdf-btn{display:none !important}.card{border:none;box-shadow:none}.wrap{margin:0;max-width:none}tbody tr:hover{background:none}}
+</style></head>
+<body>
+<div class="wrap"><div class="card">
+  <header class="head">
+    <div><h1 class="title">Test Automation Report</h1>
+      <div class="sub">Project: v5-chromium</div></div>
+    <div class="head-right">
+      <button class="pdf-btn" type="button" onclick="downloadPdf()" aria-label="Download PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M4 21h16"/></svg>Download PDF</button>
+      <div class="meta">
+        <div>Run: <b>10/29/2026, 6:18:10 AM</b></div>
+        <div>Duration: <b>18s</b></div>
+        <div>Result: <b style="color:var(--pass)">PASSED</b></div>
+      </div>
+    </div>
+  </header>
+  <div class="headline"><svg width="108" height="108" viewBox="0 0 108 108" class="donut" role="img" aria-label="Overall pass rate 100.0%">
+    <circle cx="54" cy="54" r="45" fill="none" stroke="#eceff5" stroke-width="12"/>
+    <circle cx="54" cy="54" r="45" fill="none" stroke="var(--pass)" stroke-width="12" stroke-linecap="round"
+      stroke-dasharray="282.74 282.74" transform="rotate(-90 54 54)"/>
+    <text x="54" y="52" text-anchor="middle" font-size="21" font-weight="700" fill="#1c2230">100.0%</text>
+    <text x="54" y="67" text-anchor="middle" font-size="8.5" letter-spacing="1" fill="#7a8496">PASS RATE</text>
+  </svg>
+    <div class="headtext">
+      <div class="big"><b>2</b> test cases executed across <b>1</b> modules.</div>
+      <div class="big" style="margin-top:6px">2 passed · 0 failed · 0 skipped (not run)</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat "><div class="n">2</div><div class="s">Total cases</div></div><div class="stat pass"><div class="n">2</div><div class="s">Passed</div></div><div class="stat fail"><div class="n">0</div><div class="s">Failed</div></div><div class="stat skip"><div class="n">0</div><div class="s">Skipped</div></div>
+  </div>
+  <section><h2>Results by module</h2><table><thead><tr><th class="l">Module</th><th>Total</th><th>Passed</th><th>Failed</th><th>Skipped</th><th class="rate">Pass rate</th></tr></thead><tbody><tr>
+      <td class="l">Settings</td>
+      <td>2</td>
+      <td class="pass">2</td>
+      <td class=""><span class="muted">0</span></td>
+      
+      <td class=""><span class="muted">0</span></td>
+      <td class="rate"><div class="ratecell"><div class="bar"><div class="bar-fill good" style="width:100.0%"></div></div><span class="bar-num">100.0%</span></div></td></tr></tbody>
+    <tfoot><tr><td class="l">Total</td><td>2</td><td class="pass">2</td><td class="fail">0</td><td class="skip">0</td><td class="rate"><div class="ratecell"><div class="bar"><div class="bar-fill good" style="width:100.0%"></div></div><span class="bar-num">100.0%</span></div></td></tr></tfoot>
+  </table></section>
+  <section style="border-top:1px solid var(--line)"><h2>Results by test type</h2><table><thead><tr><th class="l">Test type</th><th>Total</th><th>Passed</th><th>Failed</th><th>Skipped</th><th class="rate">Pass rate</th></tr></thead><tbody><tr>
+      <td class="l">Smoke</td>
+      <td>2</td>
+      <td class="pass">2</td>
+      <td class=""><span class="muted">0</span></td>
+      
+      <td class=""><span class="muted">0</span></td>
+      <td class="rate"><div class="ratecell"><div class="bar"><div class="bar-fill good" style="width:100.0%"></div></div><span class="bar-num">100.0%</span></div></td></tr></tbody></table></section>
+  <section class="tc-section"><h2>Test cases by outcome</h2><details class="tc-bucket"><summary class="pass">Pass <span class="tc-count">(2)</span></summary><div class="tc-mod"><div class="tc-mod-name">Settings</div><ul class="tc-ids"><li><code>TC-SETTINGS-DRV-SMOKE-001</code></li><li><code>TC-SETTINGS-POL-SMOKE-001</code></li></ul></div></details><details class="tc-bucket"><summary class="fail">Fail <span class="tc-count">(0)</span></summary><p class="muted tc-empty">None</p></details><details class="tc-bucket"><summary class="skip">Skipped <span class="tc-count">(0)</span></summary><p class="muted tc-empty">None</p></details><details class="tc-bucket"><summary class="muted">Didn&#39;t Run <span class="tc-count">(0)</span></summary><p class="muted tc-empty">None</p></details></section>
+  <footer>Pass rate = passed ÷ executed (skipped cases excluded). Generated 2026-10-29T06:18:10.456Z. TC list also written as plain text alongside this report.</footer>
+</div></div>
+<script>function downloadPdf(){var p=document.title;document.title="Test-Automation-Report";var r=function(){document.title=p;window.removeEventListener('afterprint',r);};window.addEventListener('afterprint',r);window.print();}</script>
+<script type="application/json" id="saved-summary-ledger">[{"id":"TC-SETTINGS-DRV-SMOKE-001","title":"TC-SETTINGS-DRV-SMOKE-001: Driver page loads; category tab lists Name / Description / Action","status":"passed","file":"smoke/settings/driver.smoke.spec.ts","updatedAt":"2026-10-29T06:18:10.456Z"},{"id":"TC-SETTINGS-POL-SMOKE-001","title":"TC-SETTINGS-POL-SMOKE-001: Policies page loads; Cancellation + Payment sections visible","status":"passed","file":"smoke/settings/policies.smoke.spec.ts","updatedAt":"2026-10-29T06:18:10.456Z"}]</script></body></html>
