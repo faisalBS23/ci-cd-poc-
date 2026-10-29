@@ -8,6 +8,7 @@ import { InvoicingSettingsPage } from './page-objects/settings/invoicing.page';
 import { LocationsPage } from './page-objects/settings/locations.page';
 import { NotificationSettingsPage } from './page-objects/settings/notification-settings.page';
 import { OrganisationPage } from './page-objects/settings/organisation.page';
+import { PlanningSettingsPage } from './page-objects/settings/planning-settings.page';
 import { PoliciesPage } from './page-objects/settings/policies.page';
 import { PriceSalaryPage } from './page-objects/settings/price-salary.page';
 import { ProductSettingsPage } from './page-objects/settings/product-settings.page';
@@ -30,6 +31,7 @@ type PocFixtures = {
   myProfilePage: MyProfilePage;
   notificationSettingsPage: NotificationSettingsPage;
   organisationPage: OrganisationPage;
+  planningSettingsPage: PlanningSettingsPage;
   policiesPage: PoliciesPage;
   priceSalaryPage: PriceSalaryPage;
   productSettingsPage: ProductSettingsPage;
@@ -70,6 +72,9 @@ export const test = base.extend<PocFixtures>({
   },
   organisationPage: async ({ page }, use) => {
     await use(new OrganisationPage(page));
+  },
+  planningSettingsPage: async ({ page }, use) => {
+    await use(new PlanningSettingsPage(page));
   },
   policiesPage: async ({ page }, use) => {
     await use(new PoliciesPage(page));
