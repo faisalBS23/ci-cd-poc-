@@ -4,8 +4,10 @@ import { DriverPage } from './page-objects/settings/driver.page';
 import { InvoicingSettingsPage } from './page-objects/settings/invoicing.page';
 import { PoliciesPage } from './page-objects/settings/policies.page';
 import { PriceSalaryPage } from './page-objects/settings/price-salary.page';
+import { TripSettingsPage } from './page-objects/settings/trip-settings.page';
 import { TripTypePage } from './page-objects/settings/trip-type.page';
 import { VehicleCategoryPage } from './page-objects/settings/vehicle-category.page';
+import { VehicleColorPage } from './page-objects/settings/vehicle-color.page';
 import { VehicleDecorationPage } from './page-objects/settings/vehicle-decoration.page';
 import { VehicleStatePage } from './page-objects/settings/vehicle-state.page';
 import { VehicleTypePage } from './page-objects/settings/vehicle-type.page';
@@ -16,8 +18,10 @@ type PocFixtures = {
   invoicingSettingsPage: InvoicingSettingsPage;
   policiesPage: PoliciesPage;
   priceSalaryPage: PriceSalaryPage;
+  tripSettingsPage: TripSettingsPage;
   tripTypePage: TripTypePage;
   vehicleCategoryPage: VehicleCategoryPage;
+  vehicleColorPage: VehicleColorPage;
   vehicleDecorationPage: VehicleDecorationPage;
   vehicleStatePage: VehicleStatePage;
   vehicleTypePage: VehicleTypePage;
@@ -39,11 +43,17 @@ export const test = base.extend<PocFixtures>({
   priceSalaryPage: async ({ page }, use) => {
     await use(new PriceSalaryPage(page));
   },
+  tripSettingsPage: async ({ page }, use) => {
+    await use(new TripSettingsPage(page));
+  },
   tripTypePage: async ({ page }, use) => {
     await use(new TripTypePage(page));
   },
   vehicleCategoryPage: async ({ page }, use) => {
     await use(new VehicleCategoryPage(page));
+  },
+  vehicleColorPage: async ({ page }, use) => {
+    await use(new VehicleColorPage(page));
   },
   vehicleDecorationPage: async ({ page }, use) => {
     await use(new VehicleDecorationPage(page));
