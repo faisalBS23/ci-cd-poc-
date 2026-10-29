@@ -6,8 +6,10 @@ Small Playwright proof of concept. Settings smokes copied from `teq-test`:
 - List catalogs can create; Weekend and Calculator cannot
 - Company settings profile page loads
 - Invoicing settings page loads
+- Driver settings page loads
+- Policies page loads
 
-A pull request runs only the `.spec.ts` files that changed on that branch.
+A pull request runs only the `.spec.ts` files that changed on that branch. After that run, Actions updates the custom page `reports/v5/test-automation-summary.html` and commits it. Older tests stay on that page. This run only changes the tests it ran. Do not commit that file from your machine. A local run rewrites it for the tests you just ran.
 
 Local run, from this folder, after you copy `.env.example` to `.env` and fill it in:
 

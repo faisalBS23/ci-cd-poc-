@@ -645,3 +645,130 @@ export function mergeV5ShardReportsFromJson(opts: MergeShardOptions): void {
   // eslint-disable-next-line no-console
   console.log(`   Total: ${agg.totals.total} | Pass: ${agg.totals.passed} | Fail: ${agg.totals.failed} | Skip: ${agg.totals.skipped}`);
 }
+
+export type SavedSummaryTest = {
+  id: string;
+  title: string;
+  status: Status;
+  file: string;
+  updatedAt: string;
+};
+
+const SAVED_LEDGER_RE =
+  /<script type="application\/json" id="saved-summary-ledger">([\s\S]*?)<\/script>/;
+
+/** Read the last saved results hidden inside the custom summary page. */
+export function readSavedSummaryLedger(html: string): SavedSummaryTest[] {
+  const match = html.match(SAVED_LEDGER_RE);
+  if (!match) return [];
+  try {
+    const parsed = JSON.parse(match[1]) as unknown;
+    return Array.isArray(parsed) ? (parsed as SavedSummaryTest[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function reportPath(file: string): string {
+  const parts = file.replace(/\\/g, '/').split('/').filter(Boolean);
+  const testsAt = parts.indexOf('tests');
+  return (testsAt >= 0 ? parts.slice(testsAt + 1) : parts).join('/');
+}
+
+function statusFromPlaywright(status: string | undefined): Status {
+  if (status === 'passed') return 'passed';
+  if (status === 'failed' || status === 'timedOut' || status === 'interrupted') return 'failed';
+  if (status === 'flaky') return 'flaky';
+  return 'skipped';
+}
+
+function collectPlaywrightTests(report: JsonReport, updatedAt: string): SavedSummaryTest[] {
+  const found: SavedSummaryTest[] = [];
+  const walk = (suites: JsonSuite[] | undefined, inheritedFile: string) => {
+    for (const suite of suites || []) {
+      const suiteFile = suite.file || inheritedFile;
+      for (const spec of suite.specs || []) {
+        const specFile = spec.file || suiteFile;
+        for (const test of spec.tests || []) {
+          const result = test.results?.[test.results.length - 1];
+          const title = spec.title || '';
+          const id = extractTcId(title) || title;
+          if (!id) continue;
+          found.push({
+            id,
+            title,
+            status: statusFromPlaywright(result?.status),
+            file: specFile.replace(/\\/g, '/'),
+            updatedAt,
+          });
+        }
+      }
+      walk(suite.suites, suiteFile);
+    }
+  };
+  walk(report.suites, '');
+  return found;
+}
+
+function tcBucketForStatus(status: Status): OutcomeBucket {
+  if (status === 'passed') return 'passed';
+  if (status === 'failed' || status === 'flaky') return 'failed';
+  return 'skipped';
+}
+
+/**
+ * Rewrite the custom summary page from the previous saved results plus this run.
+ * Tests that did not run keep their last pass or fail.
+ */
+export function writeCumulativeSummary(opts: {
+  previous: SavedSummaryTest[];
+  playwrightJson: JsonReport;
+  outputHtml: string;
+  title?: string;
+}): { total: number; updated: number } {
+  const updatedAt = new Date().toISOString();
+  const fresh = collectPlaywrightTests(opts.playwrightJson, updatedAt);
+  const byId = new Map(opts.previous.map((test) => [test.id, test]));
+  for (const test of fresh) byId.set(test.id, test);
+  const tests = [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+
+  const records = tests.map((test) => {
+    const { type, module } = classify(reportPath(test.file));
+    return { type, module, status: test.status };
+  });
+  const tcLists = emptyTcLists();
+  for (const test of tests) {
+    if (!extractTcId(test.id)) continue;
+    addTcToList(tcLists, tcBucketForStatus(test.status), tcModuleGroup(test.id, test.file), test.id);
+  }
+  for (const bucket of Object.keys(tcLists) as OutcomeBucket[]) {
+    for (const [mod, ids] of tcLists[bucket]) {
+      ids.sort((a, b) => a.localeCompare(b));
+      tcLists[bucket].set(mod, ids);
+    }
+  }
+
+  const agg = aggregate(records);
+  const failed = tests.some((test) => test.status === 'failed' || test.status === 'flaky');
+  const html = renderHtml({
+    meta: {
+      title: opts.title || 'Test Automation Report',
+      project: 'v5-chromium',
+      version: '',
+      date: new Date().toLocaleString(),
+      durationMs: opts.playwrightJson.stats?.duration ?? 0,
+      ok: !failed,
+      generatedAt: updatedAt,
+    },
+    agg,
+    tcLists,
+  });
+  const ledger = JSON.stringify(tests).replace(/</g, '\\u003c');
+  const withLedger = html.replace(
+    '</body>',
+    `<script type="application/json" id="saved-summary-ledger">${ledger}</script></body>`,
+  );
+  fs.mkdirSync(path.dirname(opts.outputHtml), { recursive: true });
+  fs.writeFileSync(opts.outputHtml, withLedger, 'utf8');
+  return { total: tests.length, updated: fresh.length };
+}
