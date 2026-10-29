@@ -2,7 +2,9 @@ import { test as base, expect } from './fixtures/visualDebug';
 import { BusinessProfilePage } from './page-objects/settings/business-profile.page';
 import { CompanySettingsPage } from './page-objects/settings/company-settings.page';
 import { DriverPage } from './page-objects/settings/driver.page';
+import { IntegrationsPage } from './page-objects/settings/integrations.page';
 import { InvoicingSettingsPage } from './page-objects/settings/invoicing.page';
+import { NotificationSettingsPage } from './page-objects/settings/notification-settings.page';
 import { OrganisationPage } from './page-objects/settings/organisation.page';
 import { PoliciesPage } from './page-objects/settings/policies.page';
 import { PriceSalaryPage } from './page-objects/settings/price-salary.page';
@@ -19,7 +21,9 @@ type PocFixtures = {
   businessProfilePage: BusinessProfilePage;
   companySettingsPage: CompanySettingsPage;
   driverPage: DriverPage;
+  integrationsPage: IntegrationsPage;
   invoicingSettingsPage: InvoicingSettingsPage;
+  notificationSettingsPage: NotificationSettingsPage;
   organisationPage: OrganisationPage;
   policiesPage: PoliciesPage;
   priceSalaryPage: PriceSalaryPage;
@@ -43,8 +47,14 @@ export const test = base.extend<PocFixtures>({
   driverPage: async ({ page }, use) => {
     await use(new DriverPage(page));
   },
+  integrationsPage: async ({ page }, use) => {
+    await use(new IntegrationsPage(page));
+  },
   invoicingSettingsPage: async ({ page }, use) => {
     await use(new InvoicingSettingsPage(page));
+  },
+  notificationSettingsPage: async ({ page }, use) => {
+    await use(new NotificationSettingsPage(page));
   },
   organisationPage: async ({ page }, use) => {
     await use(new OrganisationPage(page));
