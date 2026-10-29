@@ -4,7 +4,10 @@ package-lock.json
 .env.local
 .env.*.local
 .auth/
-reports/
+reports/*
+!reports/v5/
+reports/v5/*
+!reports/v5/test-automation-summary.html
 test-results/
 playwright-report/
 dist/

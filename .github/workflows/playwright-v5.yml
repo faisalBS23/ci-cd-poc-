@@ -64,7 +64,7 @@ jobs:
         if: steps.specs.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Install npm packages
         if: steps.specs.outputs.run == 'true'
@@ -75,6 +75,10 @@ jobs:
       - name: Install Chromium
         if: steps.specs.outputs.run == 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Read the saved summary
+        if: steps.specs.outputs.run == 'true'
+        run: node --experimental-strip-types scripts/merge-saved-summary.ts extract reports/v5/test-automation-summary.html "$RUNNER_TEMP/summary-ledger.json"
 
       - name: Run changed specs
         id: tests
@@ -92,17 +96,17 @@ jobs:
             --project=v5-chromium \
             "${specs[@]}"
 
-      - name: Update saved summary
+      - name: Update the custom summary
         if: steps.specs.outputs.run == 'true'
-        run: node scripts/merge-ci-report.mjs reports/v5/json/results.json
+        run: node --experimental-strip-types scripts/merge-saved-summary.ts write "$RUNNER_TEMP/summary-ledger.json" reports/v5/json/results.json reports/v5/test-automation-summary.html
 
       - name: Commit saved summary
         if: steps.specs.outputs.run == 'true'
         run: |
           set -euo pipefail
-          git add ci-report
+          git add -f reports/v5/test-automation-summary.html
           if git diff --cached --quiet; then
-            echo "Saved summary already matches this run."
+            echo "Custom summary already matches this run."
             exit 0
           fi
           git config user.name "github-actions[bot]"
