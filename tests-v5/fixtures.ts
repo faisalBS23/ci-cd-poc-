@@ -1,13 +1,16 @@
 import { test as base, expect } from './fixtures/visualDebug';
+import { MyProfilePage } from './page-objects/account/my-profile.page';
 import { BusinessProfilePage } from './page-objects/settings/business-profile.page';
 import { CompanySettingsPage } from './page-objects/settings/company-settings.page';
 import { DriverPage } from './page-objects/settings/driver.page';
 import { IntegrationsPage } from './page-objects/settings/integrations.page';
 import { InvoicingSettingsPage } from './page-objects/settings/invoicing.page';
+import { LocationsPage } from './page-objects/settings/locations.page';
 import { NotificationSettingsPage } from './page-objects/settings/notification-settings.page';
 import { OrganisationPage } from './page-objects/settings/organisation.page';
 import { PoliciesPage } from './page-objects/settings/policies.page';
 import { PriceSalaryPage } from './page-objects/settings/price-salary.page';
+import { ProductSettingsPage } from './page-objects/settings/product-settings.page';
 import { TripSettingsPage } from './page-objects/settings/trip-settings.page';
 import { TripTypePage } from './page-objects/settings/trip-type.page';
 import { UserRolesPage } from './page-objects/settings/user-roles.page';
@@ -23,10 +26,13 @@ type PocFixtures = {
   driverPage: DriverPage;
   integrationsPage: IntegrationsPage;
   invoicingSettingsPage: InvoicingSettingsPage;
+  locationsPage: LocationsPage;
+  myProfilePage: MyProfilePage;
   notificationSettingsPage: NotificationSettingsPage;
   organisationPage: OrganisationPage;
   policiesPage: PoliciesPage;
   priceSalaryPage: PriceSalaryPage;
+  productSettingsPage: ProductSettingsPage;
   tripSettingsPage: TripSettingsPage;
   tripTypePage: TripTypePage;
   userRolesPage: UserRolesPage;
@@ -53,6 +59,12 @@ export const test = base.extend<PocFixtures>({
   invoicingSettingsPage: async ({ page }, use) => {
     await use(new InvoicingSettingsPage(page));
   },
+  locationsPage: async ({ page }, use) => {
+    await use(new LocationsPage(page));
+  },
+  myProfilePage: async ({ page }, use) => {
+    await use(new MyProfilePage(page));
+  },
   notificationSettingsPage: async ({ page }, use) => {
     await use(new NotificationSettingsPage(page));
   },
@@ -64,6 +76,9 @@ export const test = base.extend<PocFixtures>({
   },
   priceSalaryPage: async ({ page }, use) => {
     await use(new PriceSalaryPage(page));
+  },
+  productSettingsPage: async ({ page }, use) => {
+    await use(new ProductSettingsPage(page));
   },
   tripSettingsPage: async ({ page }, use) => {
     await use(new TripSettingsPage(page));
