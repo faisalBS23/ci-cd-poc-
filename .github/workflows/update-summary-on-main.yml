@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "reports/v5/incoming/**"
+      - "reports/v5/saved-results.json"
+      - ".github/workflows/update-summary-on-main.yml"
 
 permissions:
   contents: write
@@ -14,17 +18,8 @@ concurrency:
 
 jobs:
   summary:
-    name: Run new specs and update the report
+    name: Merge incoming results into the report
     runs-on: ubuntu-latest
-    env:
-      CI: "true"
-      HEADLESS: "true"
-      REFRESH_V5_AUTH: "true"
-      TEQ_V5_FRONTEND_URL: ${{ secrets.TEQ_V5_FRONTEND_URL }}
-      TEQ_V5_BACKEND_URL: ${{ secrets.TEQ_V5_BACKEND_URL }}
-      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,76 +27,36 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: List specs added on main
-        id: specs
-        run: |
-          set -euo pipefail
-          before="${{ github.event.before }}"
-          if [[ -z "$before" || "$before" =~ ^0+$ ]]; then
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "No previous main tip. Specs will not run. The saved report will still be rebuilt."
-            exit 0
-          fi
-          git diff --name-only --diff-filter=ACMR "$before" HEAD \
-            | grep -E '^tests-v5/.+\.spec\.ts$' > "$RUNNER_TEMP/changed-specs.txt" || true
-          if [[ ! -s "$RUNNER_TEMP/changed-specs.txt" ]]; then
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "No new or edited spec files on this main push."
-          else
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "Specs to run on main:"
-            cat "$RUNNER_TEMP/changed-specs.txt"
-          fi
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
 
-      - name: Install npm packages
-        if: steps.specs.outputs.run == 'true'
-        env:
-          HUSKY: "0"
-        run: npm install
-
-      - name: Install Chromium
-        if: steps.specs.outputs.run == 'true'
-        run: npx playwright install --with-deps chromium
-
-      - name: Run changed specs
-        id: tests
-        if: steps.specs.outputs.run == 'true'
-        continue-on-error: true
+      - name: Absorb incoming results
+        id: absorb
         run: |
           set -euo pipefail
-          : "${TEQ_V5_FRONTEND_URL:?Set the TEQ_V5_FRONTEND_URL repository secret}"
-          : "${TEQ_V5_BACKEND_URL:?Set the TEQ_V5_BACKEND_URL repository secret}"
-          : "${TEST_USER_EMAIL:?Set the TEST_USER_EMAIL repository secret}"
-          : "${TEST_USER_PASSWORD:?Set the TEST_USER_PASSWORD repository secret}"
-          mapfile -t specs < "$RUNNER_TEMP/changed-specs.txt"
-          npx playwright test \
-            --config=tests-v5/configs/playwright.v5.config.ts \
-            --project=v5-chromium \
-            "${specs[@]}"
-
-      - name: Update the saved report
-        run: |
-          set -euo pipefail
-          if [[ "${{ steps.specs.outputs.run }}" == "true" && -f reports/v5/json/results.json ]]; then
-            node --experimental-strip-types scripts/merge-saved-summary.ts update \
-              reports/v5/json/results.json \
-              reports/v5/saved-results.json \
-              reports/v5/test-automation-summary.html
-          else
-            node --experimental-strip-types scripts/merge-saved-summary.ts render \
-              reports/v5/saved-results.json \
-              reports/v5/test-automation-summary.html
+          git pull --rebase origin main
+          if [[ ! -d reports/v5/incoming ]] || ! ls reports/v5/incoming/*.json >/dev/null 2>&1; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No incoming result files. Nothing to merge."
+            exit 0
           fi
+          echo "Incoming files:"
+          ls -1 reports/v5/incoming/*.json
+          node --experimental-strip-types scripts/merge-saved-summary.ts absorb \
+            reports/v5/incoming \
+            reports/v5/saved-results.json \
+            reports/v5/test-automation-summary.html
+          rm -f reports/v5/incoming/*.json
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit the saved report
+        if: steps.absorb.outputs.changed == 'true'
         run: |
           set -euo pipefail
           git add -f reports/v5/saved-results.json reports/v5/test-automation-summary.html
+          git add -A reports/v5/incoming || true
           if git diff --cached --quiet; then
             echo "Saved report already matches main."
             exit 0
@@ -109,21 +64,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update the test summary."
-          # Playwright leaves local report files. autoStash lets rebase ignore that noise.
           git -c rebase.autoStash=true pull --rebase origin main
           git push origin HEAD:main
-
-      - name: Upload reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-v5-main-${{ github.run_id }}
-          path: |
-            reports/v5/
-            test-results/v5/
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Fail the check when a test failed
-        if: steps.tests.outcome == 'failure'
-        run: exit 1
