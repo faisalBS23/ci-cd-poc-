@@ -5,6 +5,8 @@ import { InvoicingSettingsPage } from './page-objects/settings/invoicing.page';
 import { PoliciesPage } from './page-objects/settings/policies.page';
 import { PriceSalaryPage } from './page-objects/settings/price-salary.page';
 import { TripTypePage } from './page-objects/settings/trip-type.page';
+import { VehicleCategoryPage } from './page-objects/settings/vehicle-category.page';
+import { VehicleDecorationPage } from './page-objects/settings/vehicle-decoration.page';
 import { VehicleStatePage } from './page-objects/settings/vehicle-state.page';
 import { VehicleTypePage } from './page-objects/settings/vehicle-type.page';
 
@@ -15,6 +17,8 @@ type PocFixtures = {
   policiesPage: PoliciesPage;
   priceSalaryPage: PriceSalaryPage;
   tripTypePage: TripTypePage;
+  vehicleCategoryPage: VehicleCategoryPage;
+  vehicleDecorationPage: VehicleDecorationPage;
   vehicleStatePage: VehicleStatePage;
   vehicleTypePage: VehicleTypePage;
 };
@@ -37,6 +41,12 @@ export const test = base.extend<PocFixtures>({
   },
   tripTypePage: async ({ page }, use) => {
     await use(new TripTypePage(page));
+  },
+  vehicleCategoryPage: async ({ page }, use) => {
+    await use(new VehicleCategoryPage(page));
+  },
+  vehicleDecorationPage: async ({ page }, use) => {
+    await use(new VehicleDecorationPage(page));
   },
   vehicleStatePage: async ({ page }, use) => {
     await use(new VehicleStatePage(page));
