@@ -4,13 +4,11 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "reports/v5/incoming/**"
-      - "reports/v5/saved-results.json"
-      - ".github/workflows/update-summary-on-main.yml"
 
 permissions:
   contents: write
+  actions: read
+  pull-requests: read
 
 concurrency:
   group: saved-summary-main
@@ -18,7 +16,7 @@ concurrency:
 
 jobs:
   summary:
-    name: Merge incoming results into the report
+    name: Merge pull request results into the report
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,31 +30,63 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Download this pull request's results
+        id: download
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/incoming"
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+
+          # Bot report commits are not pull requests. Skip them.
+          if [[ "${{ github.event.head_commit.message }}" == "Update the test summary." ]]; then
+            echo "This push only updated the saved report. Nothing to absorb."
+            exit 0
+          fi
+
+          PR_NUMBER="$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" \
+            --jq '.[0].number // empty' || true)"
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "No pull request linked to this commit. Nothing to absorb."
+            exit 0
+          fi
+          echo "Pull request: #$PR_NUMBER"
+          echo "pr=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+          ARTIFACT_NAME="pr-run-results-${PR_NUMBER}"
+          ARTIFACT_ID="$(gh api "repos/${{ github.repository }}/actions/artifacts?name=${ARTIFACT_NAME}&per_page=5" \
+            --jq '[.artifacts[] | select(.expired == false)][0].id // empty')"
+          if [[ -z "$ARTIFACT_ID" ]]; then
+            echo "No artifact named ${ARTIFACT_NAME}. The pull request may not have run tests."
+            exit 0
+          fi
+          echo "Artifact id: $ARTIFACT_ID"
+
+          gh api "repos/${{ github.repository }}/actions/artifacts/${ARTIFACT_ID}/zip" > "$RUNNER_TEMP/pr-results.zip"
+          unzip -o "$RUNNER_TEMP/pr-results.zip" -d "$RUNNER_TEMP/incoming"
+          if ! ls "$RUNNER_TEMP/incoming"/*.json >/dev/null 2>&1; then
+            echo "Artifact zip had no JSON results."
+            exit 0
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          ls -1 "$RUNNER_TEMP/incoming"
+
       - name: Absorb incoming results
-        id: absorb
+        if: steps.download.outputs.changed == 'true'
         run: |
           set -euo pipefail
           git pull --rebase origin main
-          if [[ ! -d reports/v5/incoming ]] || ! ls reports/v5/incoming/*.json >/dev/null 2>&1; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "No incoming result files. Nothing to merge."
-            exit 0
-          fi
-          echo "Incoming files:"
-          ls -1 reports/v5/incoming/*.json
           node --experimental-strip-types scripts/merge-saved-summary.ts absorb \
-            reports/v5/incoming \
+            "$RUNNER_TEMP/incoming" \
             reports/v5/saved-results.json \
             reports/v5/test-automation-summary.html
-          rm -f reports/v5/incoming/*.json
-          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit the saved report
-        if: steps.absorb.outputs.changed == 'true'
+        if: steps.download.outputs.changed == 'true'
         run: |
           set -euo pipefail
           git add -f reports/v5/saved-results.json reports/v5/test-automation-summary.html
-          git add -A reports/v5/incoming || true
           if git diff --cached --quiet; then
             echo "Saved report already matches main."
             exit 0
