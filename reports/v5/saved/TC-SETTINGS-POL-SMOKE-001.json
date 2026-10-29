@@ -1,7 +1,0 @@
-{
-  "id": "TC-SETTINGS-POL-SMOKE-001",
-  "title": "TC-SETTINGS-POL-SMOKE-001: Policies page loads; Cancellation + Payment sections visible",
-  "status": "passed",
-  "file": "smoke/settings/policies.smoke.spec.ts",
-  "updatedAt": "2026-10-29T06:21:59.610Z"
-}

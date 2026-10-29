@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC-SETTINGS-DRV-SMOKE-001",
+    "title": "TC-SETTINGS-DRV-SMOKE-001: Driver page loads; category tab lists Name / Description / Action",
+    "status": "passed",
+    "file": "smoke/settings/driver.smoke.spec.ts",
+    "updatedAt": "2026-10-29T06:21:59.610Z"
+  },
+  {
+    "id": "TC-SETTINGS-POL-SMOKE-001",
+    "title": "TC-SETTINGS-POL-SMOKE-001: Policies page loads; Cancellation + Payment sections visible",
+    "status": "passed",
+    "file": "smoke/settings/policies.smoke.spec.ts",
+    "updatedAt": "2026-10-29T06:21:59.610Z"
+  },
+  {
+    "id": "TC-SETTINGS-TT-SMOKE-001",
+    "title": "TC-SETTINGS-TT-SMOKE-001: Trip type page loads; default rows visible",
+    "status": "passed",
+    "file": "smoke/settings/trip-type.smoke.spec.ts",
+    "updatedAt": "2026-10-29T06:46:01.421Z"
+  },
+  {
+    "id": "TC-SETTINGS-VS-SMOKE-001",
+    "title": "TC-SETTINGS-VS-SMOKE-001: Verify Vehicle State tab loads and list is discoverable",
+    "status": "passed",
+    "file": "smoke/settings/vehicle-state.smoke.spec.ts",
+    "updatedAt": "2026-10-29T06:46:01.421Z"
+  },
+  {
+    "id": "TC-SETTINGS-VT-SMOKE-001",
+    "title": "TC-SETTINGS-VT-SMOKE-001: Verify Vehicles hub loads and vehicle type list is discoverable",
+    "status": "passed",
+    "file": "smoke/settings/vehicle-type.smoke.spec.ts",
+    "updatedAt": "2026-10-29T06:46:01.421Z"
+  }
+]

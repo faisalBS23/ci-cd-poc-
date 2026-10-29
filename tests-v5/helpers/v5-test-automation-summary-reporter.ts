@@ -716,26 +716,6 @@ function tcBucketForStatus(status: Status): OutcomeBucket {
   return 'skipped';
 }
 
-/** One result file per test, so two branches can add different tests without a merge conflict. */
-export function savedResultFileName(id: string): string {
-  const safe = id.replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^\.+/, '');
-  if (!safe) throw new Error(`Test id cannot be saved as a file name: ${id}`);
-  return `${safe}.json`;
-}
-
-export function readSavedResultDir(dir: string): SavedSummaryTest[] {
-  if (!dir || !fs.existsSync(dir)) return [];
-  const tests: SavedSummaryTest[] = [];
-  for (const name of fs.readdirSync(dir)) {
-    if (!name.endsWith('.json')) continue;
-    const raw = fs.readFileSync(path.join(dir, name), 'utf8').replace(/^\uFEFF/, '');
-    const parsed = JSON.parse(raw) as SavedSummaryTest;
-    if (!parsed || typeof parsed.id !== 'string' || !parsed.id) continue;
-    tests.push(parsed);
-  }
-  return tests;
-}
-
 /** Later groups replace the same test id. */
 export function mergeSavedResults(...groups: SavedSummaryTest[][]): SavedSummaryTest[] {
   const byId = new Map<string, SavedSummaryTest>();
@@ -748,14 +728,25 @@ export function mergeSavedResults(...groups: SavedSummaryTest[][]): SavedSummary
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
-export function writeSavedResultFiles(dir: string, tests: SavedSummaryTest[]): string[] {
-  fs.mkdirSync(dir, { recursive: true });
-  return tests.map((test) => {
-    const file = path.join(dir, savedResultFileName(test.id));
-    const stored = { ...test, file: reportPath(test.file || '') };
-    fs.writeFileSync(file, `${JSON.stringify(stored, null, 2)}\n`);
-    return file;
-  });
+/** Read the single saved-results ledger used on main. */
+export function readSavedResultsFile(file: string): SavedSummaryTest[] {
+  if (!file || !fs.existsSync(file)) return [];
+  const raw = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return mergeSavedResults(parsed as SavedSummaryTest[]);
+  } catch {
+    return [];
+  }
+}
+
+/** Write the single saved-results ledger used on main. */
+export function writeSavedResultsFile(file: string, tests: SavedSummaryTest[]): SavedSummaryTest[] {
+  const merged = mergeSavedResults(tests);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `${JSON.stringify(merged, null, 2)}\n`);
+  return merged;
 }
 
 export function testsFromPlaywrightJson(report: JsonReport, updatedAt = new Date().toISOString()): SavedSummaryTest[] {

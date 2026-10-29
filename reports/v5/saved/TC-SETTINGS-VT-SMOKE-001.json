@@ -1,7 +1,0 @@
-{
-  "id": "TC-SETTINGS-VT-SMOKE-001",
-  "title": "TC-SETTINGS-VT-SMOKE-001: Verify Vehicles hub loads and vehicle type list is discoverable",
-  "status": "passed",
-  "file": "smoke/settings/vehicle-type.smoke.spec.ts",
-  "updatedAt": "2026-10-29T06:46:01.421Z"
-}

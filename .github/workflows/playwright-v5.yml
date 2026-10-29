@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: playwright-v5-${{ github.event.pull_request.number }}
@@ -27,7 +27,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: List changed specs
@@ -76,15 +75,13 @@ jobs:
         if: steps.specs.outputs.run == 'true'
         run: npx playwright install --with-deps chromium
 
-      - name: Read the summary on main
+      - name: Read the report on main
         if: steps.specs.outputs.run == 'true'
         run: |
           set -euo pipefail
           git fetch origin "${{ github.base_ref }}"
-          mkdir -p "$RUNNER_TEMP/main-report/reports/v5"
-          if git cat-file -e "origin/${{ github.base_ref }}:reports/v5/saved" 2>/dev/null; then
-            git archive "origin/${{ github.base_ref }}" reports/v5/saved | tar -x -C "$RUNNER_TEMP/main-report"
-          fi
+          mkdir -p "$RUNNER_TEMP/main-report"
+          git show "origin/${{ github.base_ref }}:reports/v5/saved-results.json" > "$RUNNER_TEMP/main-report/saved-results.json" || true
           git show "origin/${{ github.base_ref }}:reports/v5/test-automation-summary.html" > "$RUNNER_TEMP/main-report/summary.html" || true
 
       - name: Run changed specs
@@ -103,29 +100,14 @@ jobs:
             --project=v5-chromium \
             "${specs[@]}"
 
-      - name: Save this run
+      - name: Build the preview summary
         if: steps.specs.outputs.run == 'true'
         run: |
-          node --experimental-strip-types scripts/merge-saved-summary.ts save-run \
+          node --experimental-strip-types scripts/merge-saved-summary.ts preview \
             reports/v5/json/results.json \
-            "$RUNNER_TEMP/main-report/reports/v5/saved" \
+            "$RUNNER_TEMP/main-report/saved-results.json" \
             "$RUNNER_TEMP/main-report/summary.html" \
-            reports/v5/saved \
             reports/v5/test-automation-summary.html
-
-      - name: Commit this run's results
-        if: steps.specs.outputs.run == 'true'
-        run: |
-          set -euo pipefail
-          git add -f reports/v5/saved
-          if git diff --cached --quiet; then
-            echo "This run did not change any saved result files."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Save this run's test results."
-          git push origin "HEAD:${{ github.head_ref }}"
 
       - name: Upload reports
         if: always()

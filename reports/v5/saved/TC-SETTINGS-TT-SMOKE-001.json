@@ -1,7 +1,0 @@
-{
-  "id": "TC-SETTINGS-TT-SMOKE-001",
-  "title": "TC-SETTINGS-TT-SMOKE-001: Trip type page loads; default rows visible",
-  "status": "passed",
-  "file": "smoke/settings/trip-type.smoke.spec.ts",
-  "updatedAt": "2026-10-29T06:46:01.421Z"
-}
