@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: playwright-v5-${{ github.event.pull_request.number }}
@@ -27,28 +27,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
-
-      - name: Fetch base branch
-        run: git fetch origin "${{ github.base_ref }}"
 
       - name: List changed specs
         id: specs
         run: |
           set -euo pipefail
-          git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- "tests-v5/**/*.spec.ts" \
-            | while IFS= read -r file; do
-                if [[ -n "$file" && -f "$file" ]]; then
-                  printf '%s\n' "$file"
-                fi
-              done > changed-specs.txt
+          base="${{ github.event.pull_request.base.sha }}"
+          git diff --name-only --diff-filter=ACMR "$base" HEAD \
+            | grep -E '^tests-v5/.+\.spec\.ts$' > changed-specs.txt || true
           if [[ ! -s changed-specs.txt ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "No new or edited spec files. Playwright will be skipped."
+            {
+              echo "## Playwright"
+              echo ""
+              echo "No new or edited spec files on this pull request. Playwright was skipped."
+            } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Specs to run:"
             cat changed-specs.txt
+            {
+              echo "## Playwright"
+              echo ""
+              echo "Running these specs:"
+              echo ""
+              while IFS= read -r file; do
+                echo "- \`$file\`"
+              done < changed-specs.txt
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Set up Node
@@ -68,7 +77,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run changed specs
+        id: tests
         if: steps.specs.outputs.run == 'true'
+        continue-on-error: true
         run: |
           set -euo pipefail
           : "${TEQ_V5_FRONTEND_URL:?Set the TEQ_V5_FRONTEND_URL repository secret}"
@@ -81,6 +92,24 @@ jobs:
             --project=v5-chromium \
             "${specs[@]}"
 
+      - name: Update saved summary
+        if: steps.specs.outputs.run == 'true'
+        run: node scripts/merge-ci-report.mjs reports/v5/json/results.json
+
+      - name: Commit saved summary
+        if: steps.specs.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          git add ci-report
+          if git diff --cached --quiet; then
+            echo "Saved summary already matches this run."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update the test summary."
+          git push origin "HEAD:${{ github.head_ref }}"
+
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,3 +120,7 @@ jobs:
             test-results/v5/
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Fail the check when a test failed
+        if: steps.tests.outcome == 'failure'
+        run: exit 1
