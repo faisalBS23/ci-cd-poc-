@@ -8,6 +8,7 @@ reports/*
 !reports/v5/
 reports/v5/*
 !reports/v5/test-automation-summary.html
+!reports/v5/saved-results.json
 test-results/
 playwright-report/
 dist/
