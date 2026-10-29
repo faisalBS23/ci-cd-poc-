@@ -28,7 +28,47 @@ function previousFromMain(ledgerPath: string, htmlPath: string): SavedSummaryTes
   );
 }
 
-if (mode === 'preview') {
+function readIncomingFile(file: string): SavedSummaryTest[] {
+  if (!fs.existsSync(file)) return [];
+  const parsed = readJson(file) as unknown;
+  if (Array.isArray(parsed)) return parsed as SavedSummaryTest[];
+  if (parsed && typeof parsed === 'object' && Array.isArray((parsed as { tests?: unknown }).tests)) {
+    return (parsed as { tests: SavedSummaryTest[] }).tests;
+  }
+  return [];
+}
+
+function readIncomingDir(dir: string): SavedSummaryTest[] {
+  if (!dir || !fs.existsSync(dir)) return [];
+  const groups: SavedSummaryTest[][] = [];
+  for (const name of fs.readdirSync(dir).sort()) {
+    if (!name.endsWith('.json')) continue;
+    groups.push(readIncomingFile(path.join(dir, name)));
+  }
+  return mergeSavedResults(...groups);
+}
+
+if (mode === 'save-incoming') {
+  const [playwrightJsonPath, outPath] = args;
+  if (!playwrightJsonPath || !outPath) {
+    console.error('Use: merge-saved-summary.ts save-incoming <playwright-json> <out-json>');
+    process.exit(1);
+  }
+  const resolvedJson = path.resolve(playwrightJsonPath);
+  if (!fs.existsSync(resolvedJson)) {
+    console.log(`No Playwright JSON at ${resolvedJson}. Incoming results were not saved.`);
+    process.exit(0);
+  }
+  const playwrightJson = readJson(resolvedJson);
+  const tests = testsFromPlaywrightJson(playwrightJson);
+  const out = path.resolve(outPath);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.writeFileSync(
+    out,
+    `${JSON.stringify({ updatedAt: new Date().toISOString(), tests }, null, 2)}\n`,
+  );
+  console.log(`Saved ${tests.length} result(s) for this pull request at ${out}.`);
+} else if (mode === 'preview') {
   const [playwrightJsonPath, mainLedgerPath, mainHtmlPath, outHtmlPath] = args;
   if (!playwrightJsonPath || !outHtmlPath) {
     console.error(
@@ -53,33 +93,24 @@ if (mode === 'preview') {
   console.log(
     `Preview summary has ${rendered.total} test(s). This run added or updated ${fresh.length}.`,
   );
-} else if (mode === 'update') {
-  const [playwrightJsonPath, ledgerPath, htmlPath] = args;
-  if (!ledgerPath || !htmlPath) {
-    console.error('Use: merge-saved-summary.ts update <playwright-json-or--> <ledger> <html>');
+} else if (mode === 'absorb') {
+  const [incomingDir, ledgerPath, htmlPath] = args;
+  if (!incomingDir || !ledgerPath || !htmlPath) {
+    console.error('Use: merge-saved-summary.ts absorb <incoming-dir> <ledger> <html>');
     process.exit(1);
   }
   const ledger = path.resolve(ledgerPath);
   const html = path.resolve(htmlPath);
-  let previous = previousFromMain(ledger, html);
-  let updated = 0;
-  let durationMs = 0;
-  if (playwrightJsonPath && playwrightJsonPath !== '-' && fs.existsSync(path.resolve(playwrightJsonPath))) {
-    const playwrightJson = readJson(path.resolve(playwrightJsonPath));
-    const fresh = testsFromPlaywrightJson(playwrightJson);
-    previous = mergeSavedResults(previous, fresh);
-    updated = fresh.length;
-    durationMs = playwrightJson.stats?.duration ?? 0;
-  }
-  const tests = writeSavedResultsFile(ledger, previous);
+  const incoming = readIncomingDir(path.resolve(incomingDir));
+  const merged = mergeSavedResults(previousFromMain(ledger, html), incoming);
+  const tests = writeSavedResultsFile(ledger, merged);
   const rendered = renderSavedSummary({
     tests,
     outputHtml: html,
     title: 'Test Automation Report',
-    durationMs,
   });
   console.log(
-    `Main summary has ${rendered.total} test(s). This run added or updated ${updated}.`,
+    `Main summary has ${rendered.total} test(s). Absorbed ${incoming.length} incoming result(s).`,
   );
 } else if (mode === 'render') {
   const [ledgerPath, htmlPath] = args;
@@ -97,6 +128,8 @@ if (mode === 'preview') {
   });
   console.log(`Main summary has ${rendered.total} test(s).`);
 } else {
-  console.error('Use: merge-saved-summary.ts preview ... | update ... | render ...');
+  console.error(
+    'Use: merge-saved-summary.ts save-incoming ... | preview ... | absorb ... | render ...',
+  );
   process.exit(1);
 }

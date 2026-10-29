@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: playwright-v5-${{ github.event.pull_request.number }}
@@ -27,6 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: List changed specs
@@ -35,8 +36,8 @@ jobs:
           set -euo pipefail
           base="${{ github.event.pull_request.base.sha }}"
           git diff --name-only --diff-filter=ACMR "$base" HEAD \
-            | grep -E '^tests-v5/.+\.spec\.ts$' > changed-specs.txt || true
-          if [[ ! -s changed-specs.txt ]]; then
+            | grep -E '^tests-v5/.+\.spec\.ts$' > "$RUNNER_TEMP/changed-specs.txt" || true
+          if [[ ! -s "$RUNNER_TEMP/changed-specs.txt" ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "No new or edited spec files. Playwright will be skipped."
             {
@@ -47,7 +48,7 @@ jobs:
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Specs to run:"
-            cat changed-specs.txt
+            cat "$RUNNER_TEMP/changed-specs.txt"
             {
               echo "## Playwright"
               echo ""
@@ -55,7 +56,7 @@ jobs:
               echo ""
               while IFS= read -r file; do
                 echo "- \`$file\`"
-              done < changed-specs.txt
+              done < "$RUNNER_TEMP/changed-specs.txt"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
@@ -94,11 +95,18 @@ jobs:
           : "${TEQ_V5_BACKEND_URL:?Set the TEQ_V5_BACKEND_URL repository secret}"
           : "${TEST_USER_EMAIL:?Set the TEST_USER_EMAIL repository secret}"
           : "${TEST_USER_PASSWORD:?Set the TEST_USER_PASSWORD repository secret}"
-          mapfile -t specs < changed-specs.txt
+          mapfile -t specs < "$RUNNER_TEMP/changed-specs.txt"
           npx playwright test \
             --config=tests-v5/configs/playwright.v5.config.ts \
             --project=v5-chromium \
             "${specs[@]}"
+
+      - name: Save this run for main
+        if: steps.specs.outputs.run == 'true'
+        run: |
+          node --experimental-strip-types scripts/merge-saved-summary.ts save-incoming \
+            reports/v5/json/results.json \
+            "reports/v5/incoming/pr-${{ github.event.pull_request.number }}.json"
 
       - name: Build the preview summary
         if: steps.specs.outputs.run == 'true'
@@ -108,6 +116,22 @@ jobs:
             "$RUNNER_TEMP/main-report/saved-results.json" \
             "$RUNNER_TEMP/main-report/summary.html" \
             reports/v5/test-automation-summary.html
+
+      - name: Commit this run's results
+        if: steps.specs.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          git add -f "reports/v5/incoming/pr-${{ github.event.pull_request.number }}.json"
+          if git diff --cached --quiet; then
+            echo "Incoming results already match this run."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Save pull request ${{ github.event.pull_request.number }} test results."
+          git reset --hard HEAD
+          git clean -fd
+          git push origin "HEAD:${{ github.head_ref }}"
 
       - name: Upload reports
         if: always()
