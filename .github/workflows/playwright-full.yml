@@ -59,7 +59,7 @@ jobs:
       - name: Update the saved report
         run: |
           set -euo pipefail
-          git pull --rebase origin main
+          git -c rebase.autoStash=true pull --rebase origin main
           node --experimental-strip-types scripts/merge-saved-summary.ts update \
             reports/v5/json/results.json \
             reports/v5/saved-results.json \
