@@ -1,5 +1,12 @@
 [
   {
+    "id": "TC-PROFILE-SMOKE-002",
+    "title": "TC-PROFILE-SMOKE-002: Personal form shows name, country, date, gender, and marital",
+    "status": "passed",
+    "file": "smoke/account/my-profile.smoke.spec.ts",
+    "updatedAt": "2026-10-29T10:39:31.542Z"
+  },
+  {
     "id": "TC-SETTINGS-BP-SMOKE-001",
     "title": "TC-SETTINGS-BP-SMOKE-001: Admin can view existing billing profiles for the company",
     "status": "passed",
@@ -21,6 +28,13 @@
     "updatedAt": "2026-10-29T10:09:19.191Z"
   },
   {
+    "id": "TC-SETTINGS-LOC-SMOKE-001",
+    "title": "TC-SETTINGS-LOC-SMOKE-001: Locations page + table render",
+    "status": "passed",
+    "file": "smoke/settings/locations.smoke.spec.ts",
+    "updatedAt": "2026-10-29T10:39:31.542Z"
+  },
+  {
     "id": "TC-SETTINGS-NOTIF-SMOKE-001",
     "title": "TC-SETTINGS-NOTIF-SMOKE-001: Notification Settings page loads successfully with all three sections visible",
     "status": "passed",
@@ -40,6 +54,13 @@
     "status": "passed",
     "file": "smoke/settings/policies.smoke.spec.ts",
     "updatedAt": "2026-10-29T06:21:59.610Z"
+  },
+  {
+    "id": "TC-SETTINGS-PRODUCT-SMOKE-001",
+    "title": "TC-SETTINGS-PRODUCT-SMOKE-001: Product page loads with save controls",
+    "status": "passed",
+    "file": "smoke/settings/product-settings.smoke.spec.ts",
+    "updatedAt": "2026-10-29T10:39:31.542Z"
   },
   {
     "id": "TC-SETTINGS-TRIP-SMOKE-002",
