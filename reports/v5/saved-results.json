@@ -14,6 +14,13 @@
     "updatedAt": "2026-10-29T06:21:59.610Z"
   },
   {
+    "id": "TC-SETTINGS-TRIP-SMOKE-002",
+    "title": "TC-SETTINGS-TRIP-SMOKE-002: Time additions + airport list; no pickup radius",
+    "status": "passed",
+    "file": "smoke/settings/trip-settings.smoke.spec.ts",
+    "updatedAt": "2026-10-29T09:38:13.327Z"
+  },
+  {
     "id": "TC-SETTINGS-TT-SMOKE-001",
     "title": "TC-SETTINGS-TT-SMOKE-001: Trip type page loads; default rows visible",
     "status": "passed",
@@ -26,6 +33,13 @@
     "status": "passed",
     "file": "smoke/settings/vehicle-category.smoke.spec.ts",
     "updatedAt": "2026-10-29T09:13:42.210Z"
+  },
+  {
+    "id": "TC-SETTINGS-VCOLOR-SMOKE-001",
+    "title": "TC-SETTINGS-VCOLOR-SMOKE-001: Verify Vehicle Color tab loads and list is discoverable",
+    "status": "passed",
+    "file": "smoke/settings/vehicle-color.smoke.spec.ts",
+    "updatedAt": "2026-10-29T09:38:13.327Z"
   },
   {
     "id": "TC-SETTINGS-VD-SMOKE-001",
