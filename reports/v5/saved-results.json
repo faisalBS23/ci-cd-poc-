@@ -7,6 +7,13 @@
     "updatedAt": "2026-10-29T10:39:31.542Z"
   },
   {
+    "id": "TC-PROFILE-SMOKE-003",
+    "title": "TC-PROFILE-SMOKE-003: Account settings email is read-only; language and timezone are present",
+    "status": "passed",
+    "file": "smoke/account/my-profile-account.smoke.spec.ts",
+    "updatedAt": "2026-10-29T11:02:29.175Z"
+  },
+  {
     "id": "TC-SETTINGS-BP-SMOKE-001",
     "title": "TC-SETTINGS-BP-SMOKE-001: Admin can view existing billing profiles for the company",
     "status": "passed",
@@ -47,6 +54,13 @@
     "status": "passed",
     "file": "smoke/settings/organisation.smoke.spec.ts",
     "updatedAt": "2026-10-29T09:51:01.290Z"
+  },
+  {
+    "id": "TC-SETTINGS-PLN-SMOKE-001",
+    "title": "TC-SETTINGS-PLN-SMOKE-001: Planning page loads; four sections visible",
+    "status": "passed",
+    "file": "smoke/settings/planning.smoke.spec.ts",
+    "updatedAt": "2026-10-29T11:02:29.175Z"
   },
   {
     "id": "TC-SETTINGS-POL-SMOKE-001",
