@@ -4,7 +4,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: playwright-v5-${{ github.event.pull_request.number }}
@@ -27,7 +27,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: List changed specs
@@ -104,9 +103,10 @@ jobs:
       - name: Save this run for main
         if: steps.specs.outputs.run == 'true'
         run: |
+          mkdir -p "$RUNNER_TEMP/pr-run-results"
           node --experimental-strip-types scripts/merge-saved-summary.ts save-incoming \
             reports/v5/json/results.json \
-            "reports/v5/incoming/pr-${{ github.event.pull_request.number }}.json"
+            "$RUNNER_TEMP/pr-run-results/results.json"
 
       - name: Build the preview summary
         if: steps.specs.outputs.run == 'true'
@@ -117,21 +117,15 @@ jobs:
             "$RUNNER_TEMP/main-report/summary.html" \
             reports/v5/test-automation-summary.html
 
-      - name: Commit this run's results
+      - name: Upload this run's results
         if: steps.specs.outputs.run == 'true'
-        run: |
-          set -euo pipefail
-          git add -f "reports/v5/incoming/pr-${{ github.event.pull_request.number }}.json"
-          if git diff --cached --quiet; then
-            echo "Incoming results already match this run."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Save pull request ${{ github.event.pull_request.number }} test results."
-          git reset --hard HEAD
-          git clean -fd
-          git push origin "HEAD:${{ github.head_ref }}"
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-run-results-${{ github.event.pull_request.number }}
+          path: ${{ runner.temp }}/pr-run-results/results.json
+          if-no-files-found: ignore
+          retention-days: 14
+          overwrite: true
 
       - name: Upload reports
         if: always()
