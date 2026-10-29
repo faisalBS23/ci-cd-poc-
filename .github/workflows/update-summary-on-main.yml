@@ -87,7 +87,6 @@ jobs:
       - name: Update the saved report
         run: |
           set -euo pipefail
-          git pull --rebase origin main
           if [[ "${{ steps.specs.outputs.run }}" == "true" && -f reports/v5/json/results.json ]]; then
             node --experimental-strip-types scripts/merge-saved-summary.ts update \
               reports/v5/json/results.json \
@@ -110,6 +109,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update the test summary."
+          # Playwright also writes ignored report files. Drop that noise so rebase can run.
+          git restore --worktree --source=HEAD -- reports/v5 || true
+          git clean -fd -- reports/v5 || true
           git pull --rebase origin main
           git push origin HEAD:main
 
